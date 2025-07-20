@@ -1,9 +1,10 @@
 # Importaciones
 import streamlit as st
 
+from quote import generate_quote
 from task import Task
 
-# Información persistente
+# Información persistente entre sesiones
 
 if "task_list" not in st.session_state:
     st.session_state.task_list = []
@@ -11,6 +12,10 @@ task_list = st.session_state.task_list
 
 if "user_input" not in st.session_state:
     st.session_state.user_input = ""
+
+if "quote" not in st.session_state:
+    api_key = st.secrets["quotes_api"]["api_key"]
+    st.session_state.quote = generate_quote(api_key)
 
 
 # Funciones
@@ -39,12 +44,18 @@ with st.sidebar:
 
 st.header("Lista de tareas", divider="gray")
 
+# st.subheader("Tu dosis diaria de inspiración:")
+st.info(st.session_state.quote)
+
 total_task = len(task_list)
 completed_task = sum(1 for task in task_list if task.is_done)
-metric_display = f"{completed_task}/{total_task} completadas"
-st.metric("Finalización de tareas ", metric_display, delta=None)
+metric_display = (
+    f"{completed_task}/{total_task}"
+    f"{'tareas completadas' if total_task >= 2 else 'tarea completada'}"
+)
+st.metric("", metric_display, delta=None)
 if completed_task == total_task and total_task != 0:
-    st.success("!Terminaste las tareas!", icon="😉")
+    st.success("!Terminaste las tareas!", icon="✔️")
 
 for idx, my_task in enumerate(task_list):
     task_col, delete_col = st.columns([0.8, 0.2])
